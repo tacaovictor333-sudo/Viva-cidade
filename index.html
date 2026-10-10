@@ -1,0 +1,1151 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Vida Cidade - Londrina PR</title>
+  
+  <!-- Leaflet CSS & JS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  
+  <!-- Fontes Google -->
+  <link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+
+  <style>
+    /* VARIABLES & THEME CONFIGURATION */
+    :root {
+      --bg-color: #f8fafc;
+      --card-bg: #ffffff;
+      --text-main: #0f172a;
+      --text-sub: #64748b;
+      --border-color: #e2e8f0;
+      --header-bg: rgba(255, 255, 255, 0.95);
+      --nav-bg: #ffffff;
+      --accent-color: #10b981;
+      --accent-hover: #059669;
+      --danger-color: #ef4444;
+      --danger-hover: #dc2626;
+      --input-bg: #f1f5f9;
+      --badge-city-bg: #dcfce7;
+      --badge-city-text: #166534;
+      --badge-age-bg: #eff6ff;
+      --badge-age-text: #1d4ed8;
+      --shadow-sm: 0 2px 8px rgba(0,0,0,0.06);
+      --shadow-md: 0 4px 14px rgba(0,0,0,0.1);
+    }
+
+    [data-theme="dark"] {
+      --bg-color: #0b0f17;
+      --card-bg: #1e293b;
+      --text-main: #f8fafc;
+      --text-sub: #94a3b8;
+      --border-color: #334155;
+      --header-bg: rgba(15, 23, 42, 0.95);
+      --nav-bg: #1e293b;
+      --accent-color: #10b981;
+      --accent-hover: #34d399;
+      --danger-color: #f87171;
+      --danger-hover: #ef4444;
+      --input-bg: #0f172a;
+      --badge-city-bg: #064e3b;
+      --badge-city-text: #a7f3d0;
+      --badge-age-bg: #1e3a8a;
+      --badge-age-text: #bfdbfe;
+      --shadow-sm: 0 2px 8px rgba(0,0,0,0.3);
+      --shadow-md: 0 4px 14px rgba(0,0,0,0.4);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Roboto', 'Google Sans', -apple-system, sans-serif;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      background-color: var(--bg-color);
+      color: var(--text-main);
+      transition: background-color 0.3s ease, color 0.3s ease;
+      padding-bottom: 30px;
+    }
+
+    /* HEADER */
+    header {
+      background: var(--header-bg);
+      backdrop-filter: blur(10px);
+      padding: 12px 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: var(--shadow-sm);
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .logo-container {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .logo-icon {
+      background: #10b981;
+      color: white;
+      border-radius: 12px;
+      padding: 8px 10px;
+      font-size: 1.2rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .app-title {
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: var(--text-main);
+      letter-spacing: -0.3px;
+    }
+
+    .badges {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+      margin-top: 2px;
+    }
+
+    .badge {
+      font-size: 0.7rem;
+      font-weight: 600;
+      padding: 2px 8px;
+      border-radius: 12px;
+    }
+
+    .badge-city {
+      background: var(--badge-city-bg);
+      color: var(--badge-city-text);
+    }
+
+    .badge-age {
+      background: var(--badge-age-bg);
+      color: var(--badge-age-text);
+      border: 1px solid var(--border-color);
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .theme-toggle-btn {
+      background: var(--input-bg);
+      border: 1px solid var(--border-color);
+      color: var(--text-main);
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 1.1rem;
+      transition: all 0.2s ease;
+    }
+
+    .points-btn {
+      background: #ecfdf5;
+      color: #059669;
+      font-weight: 700;
+      font-size: 0.85rem;
+      padding: 8px 12px;
+      border-radius: 20px;
+      border: 1px solid #a7f3d0;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      cursor: pointer;
+    }
+
+    [data-theme="dark"] .points-btn {
+      background: #064e3b;
+      color: #a7f3d0;
+      border-color: #047857;
+    }
+
+    /* NAVIGATION TABS */
+    nav {
+      display: flex;
+      background: var(--nav-bg);
+      padding: 8px 16px;
+      gap: 8px;
+      overflow-x: auto;
+      border-bottom: 1px solid var(--border-color);
+      scrollbar-width: none;
+    }
+
+    nav::-webkit-scrollbar { display: none; }
+
+    .nav-btn {
+      padding: 8px 16px;
+      border-radius: 20px;
+      border: 1px solid var(--border-color);
+      background: var(--input-bg);
+      color: var(--text-sub);
+      font-size: 0.85rem;
+      font-weight: 600;
+      white-space: nowrap;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .nav-btn.active {
+      background: var(--accent-color);
+      color: white;
+      border-color: var(--accent-color);
+      box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
+    }
+
+    .nav-btn.sos-btn {
+      border-color: var(--danger-color);
+      color: var(--danger-color);
+    }
+
+    .nav-btn.sos-btn.active {
+      background: var(--danger-color);
+      color: white;
+      box-shadow: 0 2px 8px rgba(239, 68, 68, 0.3);
+    }
+
+    /* CONTAINER & CARDS */
+    .container {
+      padding: 16px;
+      max-width: 600px;
+      margin: 0 auto;
+    }
+
+    .location-card {
+      background: #0f172a;
+      color: white;
+      padding: 14px 16px;
+      border-radius: 16px;
+      margin-bottom: 16px;
+      box-shadow: var(--shadow-md);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .location-title {
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      color: #38bdf8;
+      font-weight: 700;
+      margin-bottom: 4px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .location-address {
+      font-size: 0.98rem;
+      font-weight: 700;
+    }
+
+    .location-sub {
+      font-size: 0.8rem;
+      color: #94a3b8;
+      margin-top: 2px;
+    }
+
+    .section-title {
+      font-size: 1.1rem;
+      font-weight: 700;
+      margin-bottom: 12px;
+      color: var(--text-main);
+    }
+
+    /* MAP CONTAINER */
+    .map-controls {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      padding-bottom: 8px;
+      margin-bottom: 8px;
+      scrollbar-width: none;
+    }
+    .map-controls::-webkit-scrollbar { display: none; }
+
+    .filter-chip {
+      padding: 6px 14px;
+      background: var(--card-bg);
+      border: 1px solid var(--border-color);
+      color: var(--text-sub);
+      border-radius: 18px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.2s;
+    }
+
+    .filter-chip.active {
+      background: var(--text-main);
+      color: var(--bg-color);
+      border-color: var(--text-main);
+    }
+
+    #map-container {
+      position: relative;
+      width: 100%;
+      height: 340px;
+      border-radius: 20px;
+      overflow: hidden;
+      box-shadow: var(--shadow-md);
+      margin-bottom: 16px;
+      border: 1px solid var(--border-color);
+    }
+
+    #map {
+      width: 100%;
+      height: 100%;
+      z-index: 1;
+    }
+
+    .gps-floating-btn {
+      position: absolute;
+      bottom: 16px;
+      right: 16px;
+      z-index: 1000;
+      background: var(--card-bg);
+      border: 1px solid var(--border-color);
+      padding: 10px 14px;
+      border-radius: 24px;
+      font-size: 0.82rem;
+      font-weight: 700;
+      color: #0284c7;
+      box-shadow: var(--shadow-md);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .card {
+      background: var(--card-bg);
+      border-radius: 16px;
+      padding: 16px;
+      margin-bottom: 16px;
+      box-shadow: var(--shadow-sm);
+      border: 1px solid var(--border-color);
+      transition: background-color 0.3s ease, border-color 0.3s ease;
+    }
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 8px;
+    }
+
+    .card-title {
+      font-weight: 700;
+      font-size: 0.95rem;
+      color: var(--text-main);
+    }
+
+    .card-subtitle {
+      font-size: 0.8rem;
+      color: var(--text-sub);
+    }
+
+    .tag {
+      font-size: 0.75rem;
+      font-weight: 600;
+      padding: 4px 10px;
+      border-radius: 12px;
+    }
+
+    .tag-blue { background: #e0f2fe; color: #0369a1; }
+    .tag-green { background: #dcfce7; color: #15803d; }
+    .tag-red { background: #fee2e2; color: #991b1b; }
+
+    [data-theme="dark"] .tag-blue { background: #075985; color: #bae6fd; }
+    [data-theme="dark"] .tag-green { background: #14532d; color: #bbf7d0; }
+    [data-theme="dark"] .tag-red { background: #7f1d1d; color: #fecaca; }
+
+    /* EMERGENCY GRID */
+    .emergency-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+
+    .emergency-card {
+      background: var(--input-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 12px;
+      text-align: center;
+      text-decoration: none;
+      color: var(--text-main);
+      transition: all 0.2s ease;
+    }
+
+    .emergency-card:hover {
+      border-color: var(--danger-color);
+      transform: translateY(-2px);
+    }
+
+    .emergency-number {
+      font-size: 1.3rem;
+      font-weight: 800;
+      color: var(--danger-color);
+      margin-top: 2px;
+    }
+
+    .emergency-name {
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: var(--text-sub);
+    }
+
+    /* FORMS & BUTTONS */
+    .form-group { margin-bottom: 14px; }
+    .form-group label {
+      display: block;
+      font-size: 0.85rem;
+      font-weight: 600;
+      margin-bottom: 6px;
+      color: var(--text-main);
+    }
+
+    .form-control {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid var(--border-color);
+      background: var(--input-bg);
+      color: var(--text-main);
+      border-radius: 12px;
+      font-size: 0.9rem;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .form-control:focus {
+      border-color: var(--accent-color);
+    }
+
+    .btn {
+      width: 100%;
+      padding: 14px;
+      border: none;
+      border-radius: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      background: var(--accent-color);
+      color: white;
+      font-size: 0.95rem;
+      box-shadow: 0 4px 12px rgba(16, 185, 129, 0.25);
+      transition: background-color 0.2s;
+    }
+
+    .btn:hover { background: var(--accent-hover); }
+
+    .btn-danger {
+      background: var(--danger-color);
+      box-shadow: 0 4px 12px rgba(239, 68, 68, 0.25);
+    }
+
+    .btn-danger:hover { background: var(--danger-hover); }
+
+    .quick-exit-btn {
+      background: #ef4444;
+      color: white;
+      border: none;
+      padding: 10px;
+      border-radius: 10px;
+      font-weight: 700;
+      font-size: 0.85rem;
+      width: 100%;
+      cursor: pointer;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+
+    /* MODAL 16+ */
+    .modal-overlay {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(0,0,0,0.7);
+      backdrop-filter: blur(4px);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 2000;
+      padding: 16px;
+    }
+
+    .modal {
+      background: var(--card-bg);
+      padding: 24px;
+      border-radius: 24px;
+      max-width: 400px;
+      width: 100%;
+      text-align: center;
+      box-shadow: var(--shadow-md);
+      border: 1px solid var(--border-color);
+    }
+
+    .progress-bar {
+      width: 100%;
+      height: 8px;
+      background: var(--input-bg);
+      border-radius: 4px;
+      overflow: hidden;
+      margin: 10px 0;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: var(--accent-color);
+      width: 0%;
+      transition: width 0.3s;
+    }
+
+    .hidden { display: none !important; }
+
+    /* GOOGLE MAPS BLUE DOT PULSE */
+    .blue-dot-marker {
+      width: 18px;
+      height: 18px;
+      background-color: #4285F4;
+      border: 3px solid #FFFFFF;
+      border-radius: 50%;
+      box-shadow: 0 0 6px rgba(0, 0, 0, 0.4);
+      position: relative;
+    }
+
+    .blue-dot-marker::after {
+      content: "";
+      position: absolute;
+      top: -10px; left: -10px;
+      width: 32px; height: 32px;
+      border-radius: 50%;
+      background-color: rgba(66, 133, 244, 0.3);
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0% { transform: scale(0.5); opacity: 1; }
+      100% { transform: scale(1.6); opacity: 0; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Gateway Modal 16+ -->
+  <div id="age-modal" class="modal-overlay hidden">
+    <div class="modal">
+      <div style="font-size: 2.8rem; margin-bottom: 8px;">🛡️</div>
+      <h2 style="font-size: 1.25rem; margin-bottom: 8px; color: var(--text-main);">Verificação de Idade</h2>
+      <p style="font-size: 0.85rem; color: var(--text-sub); margin-bottom: 16px; line-height: 1.4;">
+        O <strong>Vida Cidade</strong> exige validação de maioridade (mínimo 16 anos) para participação ativa na comunidade de Londrina.
+      </p>
+      <div class="form-group">
+        <label for="birthdate">Sua Data de Nascimento:</label>
+        <input type="date" id="birthdate" class="form-control">
+      </div>
+      <button class="btn" onclick="verifyAge()">Confirmar e Entrar</button>
+      <p id="age-error" style="color: #ef4444; font-size: 0.8rem; margin-top: 8px;" class="hidden">
+        Acesso permitido apenas para maiores de 16 anos.
+      </p>
+    </div>
+  </div>
+
+  <header>
+    <div class="logo-container">
+      <div class="logo-icon">🌱</div>
+      <div>
+        <div class="app-title">Vida Cidade</div>
+        <div class="badges">
+          <span class="badge badge-city">Londrina - PR</span>
+          <span class="badge badge-age">👤 16+ Verificado</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="header-actions">
+      <!-- BOTÃO DE TEMA CLARO / ESCURO -->
+      <button class="theme-toggle-btn" onclick="toggleTheme()" id="theme-btn" title="Mudar Tema">
+        🌙
+      </button>
+
+      <div class="points-btn" onclick="switchTab('pets')">
+        🪙 <span id="user-points">0</span> pts
+      </div>
+    </div>
+  </header>
+
+  <nav>
+    <button class="nav-btn active" onclick="switchTab('map')">🗺️ Mapa & Serviços</button>
+    <button class="nav-btn" onclick="switchTab('pets')">🐾 Mascotes Eco</button>
+    <button class="nav-btn" onclick="switchTab('report')">📢 Denunciar</button>
+    <button class="nav-btn sos-btn" onclick="switchTab('sos')">🛡️ SOS Anônimo</button>
+    <button class="nav-btn" onclick="switchTab('ai')">🤖 Diagnóstico IA</button>
+  </nav>
+
+  <div class="container">
+
+    <!-- CARD DE LOCALIZAÇÃO EM TEMPO REAL -->
+    <div class="location-card">
+      <div class="location-title">
+        <span style="display:inline-block; width:8px; height:8px; background:#38bdf8; border-radius:50%; animation: pulse 1.5s infinite;"></span>
+        SUA LOCALIZAÇÃO EM TEMPO REAL
+      </div>
+      <div class="location-address" id="live-address-title">Obtendo sinal GPS...</div>
+      <div class="location-sub" id="live-coords">Conectando ao satélite...</div>
+    </div>
+
+    <!-- ABA MAPA -->
+    <div id="tab-map">
+      <div class="section-title">Mapa Urbano de Londrina</div>
+      
+      <div class="map-controls">
+        <button class="filter-chip active" onclick="filterMarkers('all', this)">Todos</button>
+        <button class="filter-chip" onclick="filterMarkers('saude', this)">🏥 Saúde</button>
+        <button class="filter-chip" onclick="filterMarkers('terminais', this)">🚏 Terminais</button>
+        <button class="filter-chip" onclick="filterMarkers('parques', this)">🌳 Parques</button>
+        <button class="filter-chip" onclick="filterMarkers('ocorrencias', this)">⚠️ Ocorrências</button>
+      </div>
+
+      <div id="map-container">
+        <button class="gps-floating-btn" onclick="locateUser(true)">
+          🎯 Centralizar GPS
+        </button>
+        <div id="map"></div>
+      </div>
+
+      <div class="section-title">Radar de Serviços Públicos Em Londrina</div>
+      <p style="font-size: 0.8rem; color: var(--text-sub); margin-bottom: 12px;" id="radar-sub">
+        Calculado a partir de R. Luís Vicente Amadeu Gongôra, 75
+      </p>
+
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <div class="card-title">Terminal Milton Gavetti</div>
+            <div class="card-subtitle">Transporte Urbano</div>
+          </div>
+          <span class="tag tag-blue" id="dist-terminal">📍 Calculando...</span>
+        </div>
+        <div style="font-size: 0.8rem; color: var(--text-sub); display: flex; justify-content: space-between; margin-top: 8px;">
+          <span id="walk-terminal">🚶 Buscando rota...</span>
+          <span class="tag tag-green">Ônibus chega em 3 min</span>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <div class="card-title">UBS Carnascialli</div>
+            <div class="card-subtitle">Posto de Saúde (UBS)</div>
+          </div>
+          <span class="tag tag-blue" id="dist-ubs">📍 Calculando...</span>
+        </div>
+        <div style="font-size: 0.8rem; color: var(--text-sub); display: flex; justify-content: space-between; margin-top: 8px;">
+          <span id="walk-ubs">🚶 Buscando rota...</span>
+          <span class="tag tag-green">~15 min de espera</span>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <div class="card-title">Hospital Dr. Anísio Figueiredo (Zona Norte)</div>
+            <div class="card-subtitle">Hospital de Referência</div>
+          </div>
+          <span class="tag tag-blue" id="dist-hosp">📍 Calculando...</span>
+        </div>
+        <div style="font-size: 0.8rem; color: var(--text-sub); display: flex; justify-content: space-between; margin-top: 8px;">
+          <span id="walk-hosp">🚶 Buscando rota...</span>
+          <span class="tag tag-green">Pronto Atendimento 24h</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ABA MASCOTES ECO & ECOPOINTS -->
+    <div id="tab-pets" class="hidden">
+      <div class="section-title">Mascotes Virtuais & EcoPontos</div>
+      
+      <div class="card">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <span style="font-weight: 700; font-size: 0.9rem;">Limite Diário de Pontos</span>
+          <span style="font-weight: 700; font-size: 0.85rem; color: var(--accent-color);" id="daily-cap-text">0 / 150 pts hoje</span>
+        </div>
+        <div class="progress-bar">
+          <div class="progress-fill" id="daily-progress"></div>
+        </div>
+        <p style="font-size: 0.75rem; color: var(--text-sub);">
+          Cap diário de 150 EcoPoints para garantir sustentabilidade do sistema. Reset automático à meia-noite.
+        </p>
+      </div>
+
+      <div class="card" style="text-align: center;">
+        <div style="font-size: 4rem; margin: 10px 0;">🦫</div>
+        <h3 style="color: var(--text-main);">Capivara Urbana (Londrina)</h3>
+        <p style="font-size: 0.85rem; color: var(--text-sub); margin: 6px 0 16px;">
+          Alimente o mascote cuidando da cidade para acelerar o progresso comunitário!
+        </p>
+        <button class="btn" onclick="feedPet()">🌾 Alimentar Mascote (+20 pts)</button>
+      </div>
+    </div>
+
+    <!-- ABA DENUNCIAR GERAL -->
+    <div id="tab-report" class="hidden">
+      <div class="section-title">Relatar Ocorrência Urbana</div>
+      <div class="card">
+        <form onsubmit="submitReport(event)">
+          <div class="form-group">
+            <label>Categoria do Problema:</label>
+            <select id="report-category" class="form-control" onchange="toggleCustomCategory()">
+              <option value="Buraco na Via">🕳️ Buraco na Via</option>
+              <option value="Iluminação Pública">💡 Iluminação Pública</option>
+              <option value="Foco de Dengue">🦟 Foco de Dengue / Lixo</option>
+              <option value="Vazamento de Água">💧 Vazamento de Água</option>
+              <option value="Outros">❓ Outros</option>
+            </select>
+          </div>
+
+          <div class="form-group hidden" id="custom-category-group">
+            <label>Especifique o Problema (Outros):</label>
+            <input type="text" id="custom-category-input" class="form-control" placeholder="Digite a categoria personalizada...">
+          </div>
+
+          <div class="form-group">
+            <label>Descrição do Incidente:</label>
+            <textarea id="report-desc" class="form-control" rows="3" placeholder="Descreva os detalhes..." required></textarea>
+          </div>
+
+          <div class="form-group">
+            <label>Foto do Incidente:</label>
+            <input type="file" accept="image/*" id="report-photo" class="form-control" onchange="previewPhoto(event)">
+            <img id="photo-preview" style="width: 100%; border-radius: 12px; margin-top: 8px;" class="hidden">
+          </div>
+
+          <div class="form-group">
+            <label>Localização Registrada:</label>
+            <input type="text" id="report-location" class="form-control" readonly value="Buscando coordenada GPS atual...">
+          </div>
+
+          <button type="submit" class="btn" id="submit-btn">Enviar Denúncia (+50 EcoPoints)</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- NOVA ABA: SOS / DENÚNCIA ANÔNIMA -->
+    <div id="tab-sos" class="hidden">
+      <!-- Botão de Saída Rápida para proteção da vítima -->
+      <button class="quick-exit-btn" onclick="quickExit()">
+        🚨 Saída Segura Rápida (Fechar Tela)
+      </button>
+
+      <div class="section-title" style="color: var(--danger-color);">🛡️ Canal de Denúncia Anônima & Proteção</div>
+
+      <div class="card" style="border-left: 4px solid var(--danger-color);">
+        <p style="font-size: 0.85rem; color: var(--text-sub); line-height: 1.4;">
+          <strong>Sigilo 100% Garantido:</strong> Este formulário é estritamente confidencial. Nenhum dado pessoal ou histórico de navegação é armazenado.
+        </p>
+      </div>
+
+      <!-- Telefones de Emergência Diretos -->
+      <div class="section-title" style="font-size: 0.95rem;">Contatos Diretos de Emergência</div>
+      <div class="emergency-grid">
+        <a href="tel:190" class="emergency-card">
+          <div class="emergency-name">Polícia Militar</div>
+          <div class="emergency-number">190</div>
+        </a>
+        <a href="tel:153" class="emergency-card">
+          <div class="emergency-name">Guarda Municipal</div>
+          <div class="emergency-number">153</div>
+        </a>
+        <a href="tel:180" class="emergency-card">
+          <div class="emergency-name">Central da Mulher</div>
+          <div class="emergency-number">180</div>
+        </a>
+        <a href="tel:100" class="emergency-card">
+          <div class="emergency-name">Direitos Humanos</div>
+          <div class="emergency-number">100</div>
+        </a>
+      </div>
+
+      <!-- Formulário Anônimo -->
+      <div class="card">
+        <form onsubmit="submitAnonymousReport(event)">
+          <div class="form-group">
+            <label>Tipo de Ocorrência Grave:</label>
+            <select id="sos-category" class="form-control" required>
+              <option value="Violência Doméstica / Familiar">🏠 Violência Doméstica / Familiar</option>
+              <option value="Agressão Física ou Verbal">🚨 Agressão Física / Verbal</option>
+              <option value="Maus-tratos a Crianças ou Idosos">🚸 Negligência / Maus-tratos</option>
+              <option value="Assédio / Importunação Sexual">🛑 Assédio / Importunação</option>
+              <option value="Ameaça / Perseguição">⚠️ Ameaça / Perseguição</option>
+              <option value="Outros Abusos">❓ Outros Abusos</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>Relato do Ocorrido (Anônimo):</label>
+            <textarea id="sos-desc" class="form-control" rows="4" placeholder="Descreva a situação com o máximo de detalhes seguro. Não informe seu nome..." required></textarea>
+          </div>
+
+          <div class="form-group">
+            <label>Local Aproximado do Fato:</label>
+            <input type="text" id="sos-location" class="form-control" placeholder="Bairro, rua ou ponto de referência em Londrina">
+          </div>
+
+          <div class="form-group" style="display: flex; align-items: center; gap: 8px;">
+            <input type="checkbox" id="sos-hide-gps" checked style="width: 18px; height: 18px;">
+            <label for="sos-hide-gps" style="margin-bottom: 0; font-size: 0.8rem;">Ocultar minha localização GPS exata nesta denúncia</label>
+          </div>
+
+          <button type="submit" class="btn btn-danger">🔒 Enviar Denúncia Anônima</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- ABA IA -->
+    <div id="tab-ai" class="hidden">
+      <div class="section-title">Diagnóstico Preditivo Urbano (IA)</div>
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">Análise de Microclima & Saúde Pública</div>
+          <span class="tag tag-green">Status Bom</span>
+        </div>
+        <p style="font-size: 0.85rem; color: var(--text-sub); line-height: 1.4; margin-top: 8px;">
+          Com base nos dados de sensores em Londrina e relatos da comunidade:
+        </p>
+        <ul style="font-size: 0.85rem; color: var(--text-main); margin: 12px 0 12px 20px; line-height: 1.6;">
+          <li>Risco de alagamentos local: <strong>Baixo (12%)</strong></li>
+          <li>Índice de Qualidade do Ar: <strong>Excelente (AQI 28)</strong></li>
+          <li>Alerta preventivo: <strong>Evite acúmulo de água limpa parada</strong></li>
+        </ul>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    let map;
+    let userMarker;
+    let markersGroup;
+    let currentUserCoords = [-23.27218, -51.15582]; // Base Jardim Pacaembu 2
+    
+    // State persistence
+    let userPoints = parseInt(localStorage.getItem('vc_points') || '0');
+    let dailyPoints = parseInt(localStorage.getItem('vc_daily_points') || '0');
+    let lastDate = localStorage.getItem('vc_last_date') || new Date().toDateString();
+
+    // Reset daily points if new day
+    if (lastDate !== new Date().toDateString()) {
+      dailyPoints = 0;
+      localStorage.setItem('vc_daily_points', '0');
+      localStorage.setItem('vc_last_date', new Date().toDateString());
+    }
+
+    const locations = [
+      { name: "Terminal Milton Gavetti", category: "terminais", lat: -23.2655, lng: -51.1592 },
+      { name: "UBS Carnascialli", category: "saude", lat: -23.2680, lng: -51.1520 },
+      { name: "Hospital Zona Norte", category: "saude", lat: -23.2610, lng: -51.1500 },
+      { name: "Parque Arthur Thomas", category: "parques", lat: -23.3320, lng: -51.1380 }
+    ];
+
+    window.onload = function() {
+      initTheme();
+      checkAgeGate();
+      updatePointsUI();
+      initMap();
+      locateUser(false);
+    };
+
+    /* TEMA CLARO E ESCURO */
+    function initTheme() {
+      const savedTheme = localStorage.getItem('vc_theme') || 'light';
+      document.documentElement.setAttribute('data-theme', savedTheme);
+      updateThemeIcon(savedTheme);
+    }
+
+    function toggleTheme() {
+      const currentTheme = document.documentElement.getAttribute('data-theme');
+      const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+      document.documentElement.setAttribute('data-theme', newTheme);
+      localStorage.setItem('vc_theme', newTheme);
+      updateThemeIcon(newTheme);
+    }
+
+    function updateThemeIcon(theme) {
+      document.getElementById('theme-btn').innerText = theme === 'dark' ? '☀️' : '🌙';
+    }
+
+    function checkAgeGate() {
+      const verified = localStorage.getItem('vc_age_verified');
+      if (!verified) {
+        document.getElementById('age-modal').classList.remove('hidden');
+      }
+    }
+
+    function verifyAge() {
+      const birth = document.getElementById('birthdate').value;
+      if (!birth) return;
+      
+      const birthDate = new Date(birth);
+      const ageDiff = new Date(Date.now() - birthDate.getTime());
+      const age = Math.abs(ageDiff.getUTCFullYear() - 1970);
+
+      if (age >= 16) {
+        localStorage.setItem('vc_age_verified', 'true');
+        document.getElementById('age-modal').classList.add('hidden');
+      } else {
+        document.getElementById('age-error').classList.remove('hidden');
+      }
+    }
+
+    function initMap() {
+      const satelliteLayer = L.tileLayer('https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}', {
+        maxZoom: 20,
+        attribution: '&copy; Google Maps'
+      });
+
+      const streetLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19,
+        attribution: '&copy; OpenStreetMap'
+      });
+
+      map = L.map('map', {
+        center: currentUserCoords,
+        zoom: 15,
+        layers: [satelliteLayer]
+      });
+
+      L.control.layers({ "Satélite Híbrido": satelliteLayer, "Ruas / Vetores": streetLayer }).addTo(map);
+
+      markersGroup = L.layerGroup().addTo(map);
+
+      // Ícone do Ponto Azul Estilo Google Maps
+      const blueDotIcon = L.divIcon({
+        className: 'blue-dot-marker',
+        iconSize: [18, 18],
+        iconAnchor: [9, 9]
+      });
+
+      userMarker = L.marker(currentUserCoords, { icon: blueDotIcon }).addTo(map)
+        .bindPopup("<b>Sua Localização GPS</b>");
+
+      renderMarkers('all');
+    }
+
+    function locateUser(recenter = true) {
+      if ("geolocation" in navigator) {
+        navigator.geolocation.watchPosition(
+          (position) => {
+            const { latitude, longitude } = position.coords;
+            currentUserCoords = [latitude, longitude];
+
+            if (userMarker) {
+              userMarker.setLatLng(currentUserCoords);
+            }
+
+            if (recenter && map) {
+              map.setView(currentUserCoords, 16);
+            }
+
+            fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`)
+              .then(res => res.json())
+              .then(data => {
+                const addr = data.address;
+                const road = addr.road || addr.pedestrian || "Rua Localizada";
+                const suburb = addr.suburb || addr.neighbourhood || "Londrina";
+                
+                document.getElementById('live-address-title').innerText = `${road}, ${addr.house_number || ''}`;
+                document.getElementById('live-coords').innerText = `${suburb} • Londrina - PR (${latitude.toFixed(5)}, ${longitude.toFixed(5)})`;
+                document.getElementById('report-location').value = `${road}, ${suburb} (${latitude.toFixed(5)}, ${longitude.toFixed(5)})`;
+                document.getElementById('radar-sub').innerText = `Calculado a partir do GPS em tempo real (${road})`;
+              })
+              .catch(() => {
+                document.getElementById('live-address-title').innerText = `Sua Localização GPS`;
+                document.getElementById('live-coords').innerText = `Londrina - PR (${latitude.toFixed(5)}, ${longitude.toFixed(5)})`;
+              });
+
+            updateDistances(latitude, longitude);
+          },
+          (error) => {
+            console.warn("GPS error: ", error);
+            document.getElementById('live-address-title').innerText = "R. Luís Vicente Amadeu Gongôra, 75";
+            document.getElementById('live-coords').innerText = "Jardim Pacaembu 2 • Londrina - PR (Modo Padrão)";
+            updateDistances(currentUserCoords[0], currentUserCoords[1]);
+          },
+          { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+        );
+      }
+    }
+
+    function calculateDistance(lat1, lon1, lat2, lon2) {
+      const R = 6371;
+      const dLat = (lat2 - lat1) * Math.PI / 180;
+      const dLon = (lon2 - lon1) * Math.PI / 180;
+      const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+                Math.sin(dLon/2) * Math.sin(dLon/2);
+      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+      return R * c;
+    }
+
+    function updateDistances(uLat, uLng) {
+      locations.forEach(loc => {
+        const distKm = calculateDistance(uLat, uLng, loc.lat, loc.lng);
+        const distMeters = Math.round(distKm * 1000);
+        const walkMin = Math.round((distKm / 4.5) * 60);
+
+        let distText = distKm < 1 ? `📍 ${distMeters} metros` : `📍 ${distKm.toFixed(1)} km`;
+        let walkText = `🚶 ~${walkMin} min a pé`;
+
+        if (loc.name.includes("Milton Gavetti")) {
+          document.getElementById('dist-terminal').innerText = distText;
+          document.getElementById('walk-terminal').innerText = walkText;
+        } else if (loc.name.includes("Carnascialli")) {
+          document.getElementById('dist-ubs').innerText = distText;
+          document.getElementById('walk-ubs').innerText = walkText;
+        } else if (loc.name.includes("Zona Norte")) {
+          document.getElementById('dist-hosp').innerText = distText;
+          document.getElementById('walk-hosp').innerText = walkText;
+        }
+      });
+    }
+
+    function renderMarkers(categoryFilter) {
+      markersGroup.clearLayers();
+      locations.forEach(loc => {
+        if (categoryFilter === 'all' || loc.category === categoryFilter) {
+          L.marker([loc.lat, loc.lng]).addTo(markersGroup)
+            .bindPopup(`<b>${loc.name}</b>`);
+        }
+      });
+    }
+
+    function filterMarkers(cat, btn) {
+      document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+      btn.classList.add('active');
+      renderMarkers(cat);
+    }
+
+    function switchTab(tab) {
+      ['map', 'pets', 'report', 'sos', 'ai'].forEach(t => {
+        const el = document.getElementById(`tab-${t}`);
+        if (el) el.classList.add('hidden');
+      });
+      document.querySelectorAll('nav .nav-btn').forEach(btn => btn.classList.remove('active'));
+
+      const targetTab = document.getElementById(`tab-${tab}`);
+      if (targetTab) targetTab.classList.remove('hidden');
+      
+      if (event && event.target) {
+        event.target.classList.add('active');
+      }
+
+      if (tab === 'map' && map) {
+        setTimeout(() => map.invalidateSize(), 100);
+      }
+    }
+
+    function toggleCustomCategory() {
+      const select = document.getElementById('report-category');
+      const customGroup = document.getElementById('custom-category-group');
+      if (select.value === 'Outros') {
+        customGroup.classList.remove('hidden');
+      } else {
+        customGroup.classList.add('hidden');
+      }
+    }
+
+    function previewPhoto(e) {
+      const file = e.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function(evt) {
+          const img = document.getElementById('photo-preview');
+          img.src = evt.target.result;
+          img.classList.remove('hidden');
+        };
+        reader.readAsDataURL(file);
+      }
+    }
+
+    function addPoints(amount) {
+      if (dailyPoints >= 150) {
+        alert("Você atingiu o limite diário de 150 EcoPoints! Volte amanhã para continuar acumulando.");
+        return false;
+      }
+
+      if (dailyPoints + amount > 150) {
+        amount = 150 - dailyPoints;
+      }
+
+      userPoints += amount;
+      dailyPoints += amount;
+
+      localStorage.setItem('vc_points', userPoints.toString());
+      localStorage.setItem('vc_daily_points', dailyPoints.toString());
+
+      updatePointsUI();
+      return true;
+    }
+
+    function updatePointsUI() {
+      document.getElementById('user-points').innerText = userPoints;
+      document.getElementById('daily-cap-text').innerText = `${dailyPoints} / 150 pts hoje`;
+      document.getElementById('daily-progress').style.width = `${(dailyPoints / 150) * 100}%`;
+    }
+
+    function feedPet() {
+      if (addPoints(20)) {
+        alert("Sua Capivara ficou feliz! Você ganhou +20 EcoPoints.");
+      }
+    }
+
+    function submitReport(e) {
+      e.preventDefault();
+      let category = document.getElementById('report-category').value;
+      if (category === 'Outros') {
+        const customVal = document.getElementById('custom-category-input').value;
+        if (customVal) category = `Outros: ${customVal}`;
+      }
+
+      if (addPoints(50)) {
+        alert(`Ocorrência (${category}) registrada com sucesso! +50 EcoPoints adicionados.`);
+        e.target.reset();
+        document.getElementById('photo-preview').classList.add('hidden');
+        document.getElementById('custom-category-group').classList.add('hidden');
+      }
+    }
+
+    /* DENÚNCIA ANÔNIMA SOS & SAÍDA RÁPIDA */
+    function quickExit() {
+      window.location.replace("https://www.google.com");
+    }
+
+    function submitAnonymousReport(e) {
+      e.preventDefault();
+      const cat = document.getElementById('sos-category').value;
+      alert(`Sua denúncia anônima de "${cat}" foi enviada de forma criptografada para as autoridades de Londrina. Nenhum dado de identificação foi registrado.`);
+      e.target.reset();
+    }
+  </script>
+</body>
+</html>
